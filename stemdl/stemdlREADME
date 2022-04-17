@@ -1,0 +1,22 @@
+'''
+Installation:
+module load python/3.8-anaconda3
+conda create --name light3 python=3.8
+conda activate light3
+pip install pytorch-lightning
+pip install torchvision
+pip install scikit-learn
+
+Paths to sciml-bench data
+python stemdl_light.py --epochs 1 --batchsize 32 --nodes 1 --gpu 2 \
+      --train-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/training\
+      --val-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/validation \
+      --test-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/testing \
+      --predict-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/inference
+
+Paths to Summit data location
+python stemdl_light.py --epochs 1 --batchsize 32 --nodes 1 --gpu 2 \
+      --train-dir /gpfs/alpine/gen150/proj-shared/jpdata/datasets/stemdl_data/training \
+      --val-dir /gpfs/alpine/gen150/proj-shared/jpdata/datasets/stemdl_data/validation \
+      --test-dir /gpfs/alpine/gen150/proj-shared/jpdata/datasets/stemdl_data/testing
+'''
