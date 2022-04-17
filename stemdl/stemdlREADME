@@ -1,3 +1,44 @@
+
+Stemdl classification benchmark
+-------------------------------
+
+Description
+-----------
+For running the stemdl benchmark these files are required:
+stemdl_light.py - source of the benchmark
+stemdlConfig.yaml - configuration file
+The sequence of steps perforof stemdl benchmark can be described by these steps
+1. read the configuration file ("stemdlConfig.yaml")
+2. read the datasets for training, validation, testing, inference
+3. train the network
+4. perform inferencing
+5. measure the time of trainig per epoch and time of a single inference operation
+6. save the measurements on the log_file.
+
+Installation
+-------------
+If Anaconda is not installed on the system, it can be downloaded from the distribution site.
+
+conda create --name light3 python=3.8
+conda activate light3
+pip install pytorch-lightning
+pip install torchvision
+pip install scikit-learn
+?pip install mlcommonLogs
+
+Datasets
+---------
+The stemdl bechmark uses these atasets: training (138717 files), validation (20000 files),testing (20000 files), prediction (8438 files), 197kbytes each
+
+The datasets can be downloaded from remote server by using this command:
+
+
+Measurements
+------------
+
+
+
+
 '''
 Installation:
 module load python/3.8-anaconda3

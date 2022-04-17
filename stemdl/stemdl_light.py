@@ -19,7 +19,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.plugins import DDPPlugin
 
 # imports from stemdl
-import time,sys, os, math, glob,argparse, yaml
+import time,sys, os, math, glob,argparse, yaml, decimal
 import torch.backends.cudnn as cudnn
 import torch.multiprocessing as mp
 import torch.nn.functional as F
@@ -104,12 +104,21 @@ class StemdlModel(pl.LightningModule):
         return y_hat
 
 # Running the code: 
-# python stemdl_light.py 
+# python stemdl_light.py --config stemdlConfig.yaml
 #
 def main():
 
+    # Read command line arguments
+    parser = argparse.ArgumentParser(description='Stemdl command line arguments',\
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument('--config', default=os.path.expanduser('./stemdlConfig.yaml'), help='path to config file')
+    args = parser.parse_args()
+
+    configFile = os.path.expanduser(args.config)
+
     # Read YAML file
-    with open("stemdlConfig.yaml", 'r') as stream:
+    with open(configFile, 'r') as stream:
         config = yaml.safe_load(stream)
 
     # Datasets: training (138717 files), validation (20000 files),
@@ -132,21 +141,35 @@ def main():
     model = StemdlModel()
 
     # training
+    samples = train_dataset.__len__()
+    samples_per_gpu = int(samples)/int(config['gpu'])
     trainer = pl.Trainer(gpus=int(config['gpu']), num_nodes=int(config['nodes']), precision=16, strategy="ddp", max_epochs=int(config['epochs']))
     start = time.time()
     trainer.fit(model, train_loader, val_loader)
     diff = time.time() - start
-    elapsedTime =  f"{diff:.2f}"
+    elapsedTime = decimal.Decimal(diff)
+    training_per_epoch = elapsedTime/int(config['epochs'])
+    training_per_epoch_str = f"{training_per_epoch:.2f}"
 
     log_file = os.path.expanduser(config['log_file'])
     with open(log_file, "a") as logfile:
-        logfile.write(f"Stemdl, resnet={config['resnet']}, epochs={config['epochs']}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, time={elapsedTime}\n")
+        logfile.write(f"Stemdl training, samples_per_gpu={samples_per_gpu}, resnet={config['resnet']}, epochs={config['epochs']}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, training_per_epoch={training_per_epoch_str}\n")
     
     #testing
     trainer.test(model, test_loader)
 
     #inference
+    number_inferences = predict_dataset.__len__()
+    number_inferences_per_gpu = int(number_inferences)/(int(config['gpu'])*int(config['nodes']))
+    start = time.time()
     predictions = trainer.predict(model, dataloaders=predict_loader)
+    diff = time.time() - start
+    elapsedTime = decimal.Decimal(diff)
+    time_per_inference = elapsedTime/number_inferences
+    time_per_inference_str = f"{time_per_inference:.6f}"
+
+    with open(log_file, "a") as logfile:
+        logfile.write(f"Stemdl inference, inferences_per_gpu={number_inferences_per_gpu}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, time_per_inference={time_per_inference_str}\n")
     
 if __name__ == "__main__":
         main()
