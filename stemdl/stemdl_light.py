@@ -1,14 +1,7 @@
+###
+# Stemdl Classification benchmark
+###
 
-
-'''
-Installation:
-module load python/3.8-anaconda3
-conda create --name light3 python=3.8
-conda activate light3
-pip install pytorch-lightning
-pip install torchvision
-pip install scikit-learn
-'''
 import torch
 from torch import nn
 from torch.nn import functional as F

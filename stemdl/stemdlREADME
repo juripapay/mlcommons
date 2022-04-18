@@ -19,45 +19,58 @@ Installation
 -------------
 If Anaconda is not installed on the system, it can be downloaded from the distribution site.
 
-conda create --name light3 python=3.8
-conda activate light3
-pip install pytorch-lightning
-pip install torchvision
-pip install scikit-learn
+Installation
+------------
+It is recommended to run the Stemdl benchmark in the Anaconda environment.
+For the installation use these sequence of instructions:
+
+1) If Anaconda is not already installed on the system, it can be downloaded from
+ here:
+    wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh
+
+2)Install Anaconda
+    bash Anaconda3-2021.05-Linux-x86_64.sh
+
+3) Create conda environment
+      conda create --name bench python=3.8
+
+4) conda activate bench
+
+5) pip install pytorch-lightning
+
+6) pip install torchvision
+7) pip install scikit-learn
 ?pip install mlcommonLogs
+
+9) Running the benchmark
+    python sytemdl_light.py --config stemdlConfig.yaml
+
 
 Datasets
 ---------
-The stemdl bechmark uses these atasets: training (138717 files), validation (20000 files),testing (20000 files), prediction (8438 files), 197kbytes each
+The stemdl bechmark uses these datasets: training (138717 files), validation (20000 files),testing (20000 files), prediction (8438 files), 197kbytes each. The datasets can be downloaded from remote server by using this command:
+aws s3 --no-sign-request --endpoint-url https://s3.echo.stfc.ac.uk sync s3://sciml-datasets/ms/stemdl_ds1 ./
 
-The datasets can be downloaded from remote server by using this command:
+The tartgt directory in this case is the local one "./", but any other directory can be provided where write permision is allowed. As a result of this command four directories will be created: training (26G), testing (3.8G), validation (3.8G), inference (1.6G).
+
 
 
 Measurements
 ------------
+*** Quadro GV100, GPU=1 ***
+Stemdl training, samples=138717, resnet=resnet18, epochs=20, bs=32, nodes=1, gpu=1, training_per_epoch=124.18
+Stemdl inference, inferences=8438, bs=32, nodes=1, gpu=1, time_per_inference=0.000346
+
+*** Quadro GV100, GPU=2 ***
+Stemdl training, samples=138717, resnet=resnet18, epochs=20, bs=32, nodes=1, gpu=2, training_per_epoch=82.35
+Stemdl training, samples=138717, resnet=resnet18, epochs=20, bs=32, nodes=1, gpu=2, training_per_epoch=82.46
+
+Stemdl inference, inferences=8438, bs=32, nodes=1, gpu=2, time_per_inference=0.000227
+Stemdl inference, inferences=8438, bs=32, nodes=1, gpu=2, time_per_inference=0.000251
 
 
-
-
-'''
-Installation:
-module load python/3.8-anaconda3
-conda create --name light3 python=3.8
-conda activate light3
-pip install pytorch-lightning
-pip install torchvision
-pip install scikit-learn
-
-Paths to sciml-bench data
-python stemdl_light.py --epochs 1 --batchsize 32 --nodes 1 --gpu 2 \
-      --train-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/training\
-      --val-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/validation \
-      --test-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/testing \
-      --predict-dir /home/pearl061/sciml_bench/datasets/stemdl_ds1/inference
-
-Paths to Summit data location
-python stemdl_light.py --epochs 1 --batchsize 32 --nodes 1 --gpu 2 \
-      --train-dir /gpfs/alpine/gen150/proj-shared/jpdata/datasets/stemdl_data/training \
-      --val-dir /gpfs/alpine/gen150/proj-shared/jpdata/datasets/stemdl_data/validation \
-      --test-dir /gpfs/alpine/gen150/proj-shared/jpdata/datasets/stemdl_data/testing
-'''
+Notes
+------
+1) Print the accuracy/loss for epoch.
+2) Use resnet50, resnet101.
+3) Printout only on one GPU.

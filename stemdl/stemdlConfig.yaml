@@ -20,8 +20,11 @@ val_dir: ~/sciml_bench/datasets/stemdl_ds1/validation
 # Inference dir
 inference_dir: ~/sciml_bench/datasets/stemdl_ds1/inference
 
-# Log file fort recording runtimes
+# Log file for recording runtimes
 log_file: ./stemdlLog
+
+# Log file for MLCommons logging
+mlperf_logfile: ./mlperf_stemdl.log
 
 #? Model file
 model_file : ./stemdlModel.h5
@@ -41,6 +44,6 @@ resnet: resnet18
 
 nodes: 1
 
-gpu: 1
+gpu: 2
 
 
