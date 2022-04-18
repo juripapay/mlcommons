@@ -9,7 +9,7 @@
 # Science and Technology Facilities Council, UK.
 # All rights reserved.
 
-import yaml, os, atexit, h5py, sys, time, decimal
+import yaml, os, atexit, h5py, sys, time, decimal, argparse
 import tensorflow as tf
 from data_loader import load_datasets
 from model import unet
@@ -114,7 +114,7 @@ def cloud_inference(args)-> None:
         mask = reconstruct_from_patches(args, mask_patches, nx, ny, patch_size=PATCH_SIZE - CROP_SIZE)
         output_dir = os.path.expanduser(args['output_dir'])
         #mask_name = (output_dir / file_name.name).with_suffix('.h5')
-        mask_name = output_dir + file_name.name + '/' + '.h5'
+        mask_name = output_dir + file_name.name + '.h5'
         print('mask_name: ', mask_name)
 
         with h5py.File(mask_name, 'w') as handle:
@@ -158,12 +158,25 @@ def cloud_training(args)-> None:
     return num_samples
 
 ### Main
-# Running the benchmark: python slstr_cloud.py 
+# Running the benchmark: python slstr_cloud.py --config ./cloudMaskConfig.yaml
 # TF automatically picks up the available GPUs
 def main():
 
+    # Read command line arguments
+    parser = argparse.ArgumentParser(description='CloudMask command line arguments',\
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument('--config', default=os.path.expanduser('./cloudMaskConfig.yaml'), help='path to config file')
+    command_line_args = parser.parse_args()
+
+    configFile = os.path.expanduser(command_line_args.config)
+
     # Read YAML file
-    with open("cloudMaskConfig.yaml", 'r') as stream:
+    with open(configFile, 'r') as stream:
+        config = yaml.safe_load(stream)
+
+    # Read YAML file
+    with open(configFile, 'r') as stream:
         args = yaml.safe_load(stream)
     log_file = os.path.expanduser(args['log_file'])
     
