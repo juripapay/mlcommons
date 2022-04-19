@@ -44,6 +44,6 @@ resnet: resnet18
 
 nodes: 1
 
-gpu: 2
+gpu: 1
 
 
