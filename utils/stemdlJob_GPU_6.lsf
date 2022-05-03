@@ -1,0 +1,21 @@
+#!/bin/bash
+#BSUB -W 1:59
+#BSUB -nnodes 1
+#BSUB -P GEN150_bench
+#BSUB -o log_light_GPU_6.o%J
+#BSUB -J log_light_GPU_6Jobx
+
+# Load modules
+module load open-ce
+pip install pytorch-lightning==1.5.10
+pip install torchvision
+pip install scikit-learn
+
+
+#This runs on many nodes
+echo "Hostname: "
+jsrun -n1 -r1 -c1 hostname
+echo "Running STEMDL_LIGHT on GPU=6"
+echo "***************************"
+
+jsrun -n1 -a6 -g6 -c42 -r1 -b none python stemdl_light.py --config stemdlConfig_GPU_6.yaml
