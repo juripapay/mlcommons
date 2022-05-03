@@ -37,8 +37,8 @@ import logging
 # Custom dataset class
 class NPZDataset(Dataset):
     def __init__(self, npz_root):
-        self.files = glob.glob(npz_root + "/*.npz")
-        #self.files = files1[0:63]
+        files1 = glob.glob(npz_root + "/*.npz")
+        self.files = files1[0:63]
 
     def __getitem__(self, index):
         sample = np.load(self.files[index])
@@ -104,7 +104,7 @@ class StemdlModel(pl.LightningModule):
 # python stemdl_light_logging.py --config stemdlConfig.yaml
 #
 def main():
-
+    
     # Read command line arguments
     parser = argparse.ArgumentParser(description='Stemdl command line arguments',\
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -123,26 +123,30 @@ def main():
     mllog.config(filename=mlperf_logfile)
     mllogger = mllog.get_mllogger()
     logger = logging.getLogger(__name__)
-
-    mllogger.event(key=mllog.constants.CACHE_CLEAR)
-    mllogger.event(key=mllog.constants.SUBMISSION_BENCHMARK, value="STEMDL")
-    mllogger.event(key=mllog.constants.SUBMISSION_ORG, value="STFC")
-    mllogger.event(key=mllog.constants.SUBMISSION_DIVISION, value="SciML")
-    mllogger.event(key=mllog.constants.SUBMISSION_STATUS, value="research")
-    mllogger.event(key=mllog.constants.SUBMISSION_PLATFORM, value="V100")
     
-    mllogger.start(key=mllog.constants.INIT_START)
+    # Initiase trainer object
+    trainer = pl.Trainer(gpus=int(config['gpu']), num_nodes=int(config['nodes']), precision=16, strategy="ddp", max_epochs=int(config['epochs']))
+  
+    if (trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.SUBMISSION_BENCHMARK, value=config['benchmark'])
+        mllogger.event(key=mllog.constants.SUBMISSION_ORG, value=config['organisation'])
+        mllogger.event(key=mllog.constants.SUBMISSION_DIVISION, value=config['division'])
+        mllogger.event(key=mllog.constants.SUBMISSION_STATUS, value=config['status'])
+        mllogger.event(key=mllog.constants.SUBMISSION_PLATFORM, value=config['platform']) 
 
-    # Scale logging system parameters, these values are extracted from stemdlConfig.yaml
-    mllogger.event(key='number_of_ranks', value=config['gpu']) #value=dist.size)
-    mllogger.event(key='number_of_nodes', value=config['nodes']) #value=(dist.size//dist.local_size))
-    mllogger.event(key='accelerators_per_node', value='8') #value=dist.local_size)
-    mllogger.end(key=mllog.constants.INIT_STOP)
+        mllogger.start(key=mllog.constants.INIT_START)
 
-    # Datasets
-    mllogger.event(key=mllog.constants.EVAL_START, value="Start:Loading datasets")
-    # Datasets: training (138717 files), validation (20000 files),
-    # testing (20000 files), prediction (8438 files), 197kbytes each
+        # Values are extracted from stemdlConfig.yaml
+        mllogger.event(key='number_of_ranks', value=config['gpu']) 
+        mllogger.event(key='number_of_nodes', value=config['nodes'])
+        mllogger.event(key='accelerators_per_node', value=config['accelerators_per_node']) 
+        mllogger.end(key=mllog.constants.INIT_STOP)
+
+        # Datasets
+        mllogger.event(key=mllog.constants.EVAL_START, value="Start:Loading datasets")
+
+    # Datasets: training (148006 files), validation (20401 files),
+    # testing (9374 files), inference (9375 files), 197kbytes each
     train_dataset = NPZDataset(os.path.expanduser(config['train_dir']))
     val_dataset = NPZDataset(os.path.expanduser(config['val_dir']))
     test_dataset = NPZDataset(os.path.expanduser(config['test_dir']))
@@ -156,21 +160,29 @@ def main():
     test_loader = DataLoader(dataset=test_dataset,batch_size=int(config['batchsize']),num_workers=4)
 
     predict_loader = DataLoader(dataset=predict_dataset,batch_size=int(config['batchsize']),num_workers=4)
-    mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Loading datasets")
+    
+    if (trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Loading datasets")
+        mllogger.event(key=mllog.constants.EVAL_START, value="Start: Loading model")
 
     # model
-    mllogger.event(key=mllog.constants.EVAL_START, value="Start: Loading model")
     model = StemdlModel()
-    mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Loading model")
-
+    if (trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Loading model")
+    
     # training
     samples = train_dataset.__len__()
     samples_per_gpu = int(samples)/int(config['gpu'])
-    trainer = pl.Trainer(gpus=int(config['gpu']), num_nodes=int(config['nodes']), precision=16, strategy="ddp", max_epochs=int(config['epochs']))
+
     start = time.time()
-    mllogger.event(key=mllog.constants.EVAL_START, value="Start: Training")
+    if (trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_START, value="Start: Training")
+   
     trainer.fit(model, train_loader, val_loader)
-    mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Training")
+
+    if (trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Training")
+
 
     diff = time.time() - start
     elapsedTime = decimal.Decimal(diff)
@@ -178,30 +190,38 @@ def main():
     training_per_epoch_str = f"{training_per_epoch:.2f}"
 
     log_file = os.path.expanduser(config['log_file'])
-    with open(log_file, "a") as logfile:
-        logfile.write(f"Stemdl training, samples_per_gpu={samples_per_gpu}, resnet={config['resnet']}, epochs={config['epochs']}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, training_per_epoch={training_per_epoch_str}\n")
+    if (trainer.global_rank == 0):
+        with open(log_file, "a") as logfile:
+            logfile.write(f"Stemdl training, samples_per_gpu={samples_per_gpu}, resnet={config['resnet']}, epochs={config['epochs']}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, training_per_epoch={training_per_epoch_str}\n")
     
     #testing
-    mllogger.event(key=mllog.constants.EVAL_START, value="Start: Testing")
+    if(trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_START, value="Start: Testing")
     trainer.test(model, test_loader)
-    mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Testing")
+    if(trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Testing")
 
     #inference
     number_inferences = predict_dataset.__len__()
     number_inferences_per_gpu = int(number_inferences)/(int(config['gpu'])*int(config['nodes']))
-    mllogger.event(key=mllog.constants.EVAL_START, value="Start: Inferences")
+    if(trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_START, value="Start: Inferences")
+
     start = time.time()
     predictions = trainer.predict(model, dataloaders=predict_loader)
     diff = time.time() - start
-    mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Inferences")
+
+    if(trainer.global_rank == 0):
+        mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Inferences")
     elapsedTime = decimal.Decimal(diff)
     time_per_inference = elapsedTime/number_inferences
     time_per_inference_str = f"{time_per_inference:.6f}"
 
-    with open(log_file, "a") as logfile:
-        logfile.write(f"Stemdl inference, inferences_per_gpu={number_inferences_per_gpu}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, time_per_inference={time_per_inference_str}\n")
+    if(trainer.global_rank == 0):
+        with open(log_file, "a") as logfile:
+            logfile.write(f"Stemdl inference, inferences_per_gpu={number_inferences_per_gpu}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, time_per_inference={time_per_inference_str}\n")
     
-    mllogger.end(key=mllog.constants.RUN_STOP, value="Benchmark run finished", metadata={'status': 'success'})
+        mllogger.end(key=mllog.constants.RUN_STOP, value="STEMLD benchmark run finished", metadata={'status': 'success'})
     
 if __name__ == "__main__":
         main()

@@ -6,19 +6,27 @@
 # Science and Technology Facilities Council, UK.
 # All rights reserved.
 
-# This is a configuration file for the Stemdl classification benchmark.
+# This is a configuration file for STEMDL classification benchmark.
+
+# General info
+benchmark: STEMDL
+organisation: STFC
+division: SciML
+status: research
+platform: nvidia gtx-2
+accelerators_per_node: 6
 
 # Training dir
-train_dir: ~/sciml_bench/datasets/stemdl_ds1/training
+train_dir: ~/sciml_bench/datasets/stemdl_ds1a/training
 
 # Test dir
-test_dir: ~/sciml_bench/datasets/stemdl_ds1/testing
+test_dir: ~/sciml_bench/datasets/stemdl_ds1a/testing
 
 # Validation dir
-val_dir: ~/sciml_bench/datasets/stemdl_ds1/validation
+val_dir: ~/sciml_bench/datasets/stemdl_ds1a/validation
 
 # Inference dir
-inference_dir: ~/sciml_bench/datasets/stemdl_ds1/inference
+inference_dir: ~/sciml_bench/datasets/stemdl_ds1a/inference
 
 # Log file for recording runtimes
 log_file: ./stemdlLog
@@ -44,6 +52,6 @@ resnet: resnet18
 
 nodes: 1
 
-gpu: 1
+gpu: 2
 
 
