@@ -100,8 +100,9 @@ class StemdlModel(pl.LightningModule):
         y_hat = self.model(x)
         return y_hat
 
+#
 # Running the code: 
-# python stemdl_light_logging.py --config stemdlConfig.yaml
+# python stemdl_classification.py --config stemdlConfig.yaml
 #
 def main():
     
@@ -133,20 +134,16 @@ def main():
         mllogger.event(key=mllog.constants.SUBMISSION_DIVISION, value=config['division'])
         mllogger.event(key=mllog.constants.SUBMISSION_STATUS, value=config['status'])
         mllogger.event(key=mllog.constants.SUBMISSION_PLATFORM, value=config['platform']) 
-
         mllogger.start(key=mllog.constants.INIT_START)
 
-        # Values are extracted from stemdlConfig.yaml
+        # Values extracted from stemdlConfig.yaml
         mllogger.event(key='number_of_ranks', value=config['gpu']) 
         mllogger.event(key='number_of_nodes', value=config['nodes'])
         mllogger.event(key='accelerators_per_node', value=config['accelerators_per_node']) 
         mllogger.end(key=mllog.constants.INIT_STOP)
-
-        # Datasets
         mllogger.event(key=mllog.constants.EVAL_START, value="Start:Loading datasets")
 
-    # Datasets: training (148006 files), validation (20401 files),
-    # testing (9374 files), inference (9375 files), 197kbytes each
+    # Datasets
     train_dataset = NPZDataset(os.path.expanduser(config['train_dir']))
     val_dataset = NPZDataset(os.path.expanduser(config['val_dir']))
     test_dataset = NPZDataset(os.path.expanduser(config['test_dir']))
@@ -165,12 +162,12 @@ def main():
         mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Loading datasets")
         mllogger.event(key=mllog.constants.EVAL_START, value="Start: Loading model")
 
-    # model
+    # Model
     model = StemdlModel()
     if (trainer.global_rank == 0):
         mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Loading model")
     
-    # training
+    # Training
     samples = train_dataset.__len__()
     samples_per_gpu = int(samples)/int(config['gpu'])
 
@@ -183,7 +180,6 @@ def main():
     if (trainer.global_rank == 0):
         mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Training")
 
-
     diff = time.time() - start
     elapsedTime = decimal.Decimal(diff)
     training_per_epoch = elapsedTime/int(config['epochs'])
@@ -194,14 +190,14 @@ def main():
         with open(log_file, "a") as logfile:
             logfile.write(f"Stemdl training, samples_per_gpu={samples_per_gpu}, resnet={config['resnet']}, epochs={config['epochs']}, bs={config['batchsize']}, nodes={config['nodes']}, gpu={config['gpu']}, training_per_epoch={training_per_epoch_str}\n")
     
-    #testing
+    # Testing
     if(trainer.global_rank == 0):
         mllogger.event(key=mllog.constants.EVAL_START, value="Start: Testing")
     trainer.test(model, test_loader)
     if(trainer.global_rank == 0):
         mllogger.event(key=mllog.constants.EVAL_STOP, value="Stop: Testing")
 
-    #inference
+    # Tnference
     number_inferences = predict_dataset.__len__()
     number_inferences_per_gpu = int(number_inferences)/(int(config['gpu'])*int(config['nodes']))
     if(trainer.global_rank == 0):
