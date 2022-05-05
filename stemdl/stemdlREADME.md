@@ -1,7 +1,7 @@
 
 # STEMDL classification benchmark
 
-## Introduction
+## 1.Introduction
 
 The STEMDL classification benchmark represents a machine learning model which can classify CBED patterns obtained from crystals into one of the 230 crystallographic space groups. The benchmark is written in Pytorch Lightning and enables distributed learning on multiple GPUs. The source code is a single Python program "stemdl_classification.py" which reads the configuration file "stemdlConfig.yaml" containing the values of parameters. The sequence of steps performed by the benchmark can be described as follows:
 1. read the configuration file ("stemdlConfig.yaml")
@@ -13,7 +13,7 @@ The STEMDL classification benchmark represents a machine learning model which ca
 6. save the time measurements in "log_file" (see stemdlConfig.yaml)
 7. save MLCOmmons logging in "mlperf_logfile" (see stemdlConfig.yaml)
 
-## Datasets
+## 2.Datasets
 
 Before running the benchmark all datasets must be downloaded from the remore server. The dataset used by the benchmark is `35` GB which is split into four folders: training (`28` GB, `148006` files), validation (`3.8` GB, `20401` files), testing (`1.8` GB, `9374` files) and inference (`1.8` GB, `9375` files).
 
@@ -22,7 +22,7 @@ aws s3 --no-sign-request --endpoint-url https://s3.echo.stfc.ac.uk sync s3://sci
 
 The target directory in this case is the local one "./", but any other directory path with a write permission can also be provided.  As a result of the aws command four directories will be created: training, testing, validation and inference.
 
-## Installation
+## 3.Installation
 
 It is recommended to run the Stemdl benchmark in the Anaconda environment.
 
@@ -48,7 +48,7 @@ It is recommended to run the Stemdl benchmark in the Anaconda environment.
 python sytemdl_classification.py --config stemdlConfig.yaml
 
 
-## Notes
+## 4.Notes
 
 1) Print the accuracy/loss for epoch.
 2) Use resnet50, resnet101.
