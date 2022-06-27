@@ -256,18 +256,10 @@ def counter_count_plot(x_list, y_list, namelist, name, output_folder = ''):
 
 #
 # Main function
-# python myTest_v4.py --config ./sequenceConfig.yaml
+# python myTest_v4.py --config ./sequenceConfig_2306.yaml
 #
 def main():
-    # ## Set the paths for input and output
-
-    #outfolder = '/home/pearl061/swDev/mon/Scripts/Analysis_q30/'
-    #input_fastq = ['/home/pearl061/swDev/mon/Data3105/MP-MTAP_S1_L001_R1_001.fastq', '/home/pearl061/swDev/mon/Data3105/MP-parental_S2_L001_R1_001.fastq']
-
-    # Give names to the respective fastq files. These names will show up in the file names. 
-    # Always use a new name for a new sample, even if it is a repeat.
-    #fastq_names = ['MTAP','HCT116']
-    
+ 
      # Read command line arguments
     parser = argparse.ArgumentParser(description='CloudMask command line arguments',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
