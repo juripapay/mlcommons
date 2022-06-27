@@ -1,0 +1,17 @@
+# This is a configuration file for dropout analysis
+
+# Out folder
+outfolder: /home/pearl061/swDev/mon/Analysis2206_second/
+
+# MTAP data
+mtapdata: /home/pearl061/swDev/mon/Data230622/MP-MTAP-3repeat-pooled.fastq
+
+# HCT116
+hct116data: /home/pearl061/swDev/mon/Data230622/MP-HCT116-3repeat-pooled.fastq
+
+# Analysis
+analysis: /home/pearl061/swDev/mon/Analysis2206_second
+
+# fastq_names = ['MTAP','HCT116']
+mtapName : MTAP
+hct116Name : HCT116
