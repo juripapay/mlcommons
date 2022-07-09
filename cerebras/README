@@ -8,3 +8,16 @@ aws s3 --no-sign-request --endpoint-url https://s3.echo.stfc.ac.uk sync s3://sci
 
 # Porting TF to Cerebras
 https://docs.cerebras.net/en/latest/tensorflow-docs/cs-tf-workflow.html
+
+## Validate code
+csrun_cpu python run.py --mode train --validate_only
+
+## Compile for CPU
+csrun_cpu python run.py --mode train --compile_only --cs_ip 172.24.102.121:9000
+
+## Compile for Cerebras
+csrun_cpu python run.py --mode train --compile_only --params configs/params.yaml --cs_ip 172.24.102.121:9000
+
+## Run on Cerebra
+csrun_wse python run.py --mode train --cs_ip 172.24.102.121 --max_steps 10000
+
