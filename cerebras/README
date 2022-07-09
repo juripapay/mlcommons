@@ -1,7 +1,10 @@
 CloudMask on Cerebras
 ---
 
-1) Download data
+# Download data
 aws s3 --no-sign-request --endpoint-url https://s3.echo.stfc.ac.uk sync s3://sciml-datasets/es/cloud_slstr_ds1/ssts ./
 
 aws s3 --no-sign-request --endpoint-url https://s3.echo.stfc.ac.uk sync s3://sciml-datasets/es/cloud_slstr_ds1/one-day/training ./
+
+# Porting TF to Cerebras
+https://docs.cerebras.net/en/latest/tensorflow-docs/cs-tf-workflow.html
